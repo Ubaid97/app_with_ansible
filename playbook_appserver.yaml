@@ -59,12 +59,6 @@
       global: yes
       state: present
 
-#  - name: install ejs
-#    community.general.npm:
-#      name: ejs
-#      global: yes
-#      state: present
-
   - name: Install nginx
     apt:
       name: nginx
@@ -82,35 +76,35 @@
       name: nginx
       enabled: yes
 
-#  - name: Disable NGINX Default Virtual Host
-#    become: yes
-#    command:
-#      cmd: unlink /etc/nginx/sites-available/default
+ - name: Disable NGINX Default Virtual Host
+   become: yes
+   command:
+     cmd: unlink /etc/nginx/sites-available/default
 
-#  - name: Create new config file
-#    become: yes
-#    file:
-#      path: /etc/nginx/sites-available/proxy_config.conf
-#      state: touch
+ - name: Create new config file
+   become: yes
+   file:
+     path: /etc/nginx/sites-available/proxy_config.conf
+     state: touch
 
-#  - name: Amend NGINX Conf File
-#    become: yes
-#    blockinfile:
-#        path: /etc/nginx/sites-available/proxy_config.conf
-#        marker: ""
-#        block: |
-#          server {
-#              listen 80;
-#              location / {
-#                  proxy_pass http://34.253.116.106:3000;
-#              }
-#          }
+ - name: Amend NGINX Conf File
+   become: yes
+   blockinfile:
+       path: /etc/nginx/sites-available/proxy_config.conf
+       marker: ""
+       block: |
+         server {
+             listen 80;
+             location / {
+                 proxy_pass http://34.253.116.106:3000;
+             }
+         }
 
 
-#  - name: Link NGINX reverse proxy
-#    become: yes
-#    command:
-#      cmd: ln -s /etc/nginx/sites-available/proxy_config.conf /etc/nginx/sites-enabled/proxy_config.conf
+ - name: Link NGINX reverse proxy
+   become: yes
+   command:
+     cmd: ln -s /etc/nginx/sites-available/proxy_config.conf /etc/nginx/sites-enabled/proxy_config.conf
 
   - name: restart nginx
     become: yes
@@ -123,8 +117,6 @@
     copy:
       src: ~/app/
       dest: app
-      # owner: foo
-      # group: foo
       mode: +x
 
 - name: npm install and start app
@@ -137,21 +129,6 @@
 #    npm:
 #      path: /usr/local/bin
 
-#  - name: delete node_modules
-#    become: yes
-#    shell:
-#      chdir: ~/app
-#      cmd: rm -rf node_modules
-
-#  - name: install express
-#    become: yes
-#    shell:
-#      cmd: npm install express -g
-
-#  - name: install ejs
-#    become: yes
-#    shell:
-#      cmd: npm install ejs -g
 
 #  - name: install npm in app
 #    become: yes
