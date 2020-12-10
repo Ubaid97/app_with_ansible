@@ -53,6 +53,7 @@
       name: pm2
       global: yes
 
+# run ansible-galaxy collection install community.general in controller before to use community.general.npm
   - name: install pm2
     community.general.npm:
       name: pm2
