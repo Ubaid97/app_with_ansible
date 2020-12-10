@@ -1,0 +1,182 @@
+# Your YAML Playbook FILE starts after three dashes (---)
+
+---
+# example targetting host_a
+
+
+- hosts: app_server
+# used to define where this playbook will run
+
+  gather_facts: yes
+# Gathers facts/state of machine before running playbook
+
+  become: true
+# become is used to the root permission to perform tasks that may require admin access
+
+  tasks:
+  - name: update and upgrade
+    apt: upgrade=yes update_cache=yes
+  - name: Install git
+    apt:
+      name: git
+      state: present
+      update_cache: yes
+
+  - name: python-sw-props
+    become: yes
+    shell:
+      cmd: apt-get install software-properties-common
+
+  - name: get the needed packages for nodejs
+    get_url:
+      url: https://deb.nodesource.com/setup_12.x
+      dest: ~/
+      mode: 755
+  - name: run the nodejs bash script
+    shell:
+      cmd: ~/setup_12.x
+
+  - name: Install nodejs
+    apt:
+      name: nodejs
+      state: present
+      update_cache: yes
+
+  - name: Install npm
+    apt:
+      name: npm
+      state: present
+      update_cache: yes
+
+  - name: install pm2
+    npm:
+      name: pm2
+      global: yes
+
+  - name: install pm2
+    community.general.npm:
+      name: pm2
+      global: yes
+      state: present
+
+#  - name: install ejs
+#    community.general.npm:
+#      name: ejs
+#      global: yes
+#      state: present
+
+  - name: Install nginx
+    apt:
+      name: nginx
+      state: present
+      update_cache: yes
+
+  - name: start nginx
+    become: yes
+    service:
+      name: nginx
+      state: started
+  - name: enable nginx
+    become: yes
+    service:
+      name: nginx
+      enabled: yes
+
+#  - name: Disable NGINX Default Virtual Host
+#    become: yes
+#    command:
+#      cmd: unlink /etc/nginx/sites-available/default
+
+#  - name: Create new config file
+#    become: yes
+#    file:
+#      path: /etc/nginx/sites-available/proxy_config.conf
+#      state: touch
+
+#  - name: Amend NGINX Conf File
+#    become: yes
+#    blockinfile:
+#        path: /etc/nginx/sites-available/proxy_config.conf
+#        marker: ""
+#        block: |
+#          server {
+#              listen 80;
+#              location / {
+#                  proxy_pass http://34.253.116.106:3000;
+#              }
+#          }
+
+
+#  - name: Link NGINX reverse proxy
+#    become: yes
+#    command:
+#      cmd: ln -s /etc/nginx/sites-available/proxy_config.conf /etc/nginx/sites-enabled/proxy_config.conf
+
+  - name: restart nginx
+    become: yes
+    service:
+      name: nginx
+      state: restarted
+#      enabled: yes
+
+  - name: send app file to app_server
+    copy:
+      src: ~/app/
+      dest: app
+      # owner: foo
+      # group: foo
+      mode: +x
+
+- name: npm install and start app
+  hosts: app_server
+  gather_facts: yes
+
+  tasks:
+#  - name: install npm in bin
+#    become: yes
+#    npm:
+#      path: /usr/local/bin
+
+#  - name: delete node_modules
+#    become: yes
+#    shell:
+#      chdir: ~/app
+#      cmd: rm -rf node_modules
+
+#  - name: install express
+#    become: yes
+#    shell:
+#      cmd: npm install express -g
+
+#  - name: install ejs
+#    become: yes
+#    shell:
+#      cmd: npm install ejs -g
+
+#  - name: install npm in app
+#    become: yes
+#    npm:
+#      path: app/
+#      ignore_errors: yes
+
+  - name: npm install the dependencies from package-lock
+    become: yes
+    shell:
+      chdir: app
+      cmd: npm install
+
+  - name: delete pm2
+    shell:
+      cmd: pm2 kill
+    # command: pm2 stop ~/app/app.js
+
+  - name: start pm2
+    shell:
+      chdir: app
+      cmd: pm2 start app.js --update-env
+
+
+
+# be mindful of indentation
+# each task should be specific
+# one playbook can have many tasks
