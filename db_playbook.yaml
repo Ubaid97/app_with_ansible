@@ -1,0 +1,57 @@
+# Your YAML Playbook FILE starts after three dashes (---)
+
+---
+
+- hosts: db_server
+# used to define where this playbook will run
+
+  gather_facts: yes
+# Gathers facts/state of machine before running playbook
+
+  become: true
+# become is used to the root permission to perform tasks that may require admin access
+
+  tasks:
+  - name: update and upgrade
+    apt: upgrade=yes update_cache=yes
+
+  - name: send environment folder to db server
+    copy:
+      src: ~/environment/
+      dest: environment
+      mode: +rwx
+
+  - name: send app folder to db server
+    copy:
+      src: ~/app/
+      dest: app
+      mode: +rwx
+
+  - name: get mongodb key
+    become: yes
+    shell: |
+      wget -qO - https://www.mongodb.org/static/pgp/server-3.2.asc | sudo apt-key add -
+      echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+
+  - name: install mongodb
+    apt:
+      pkg:
+        mongodb-org
+      state: present
+
+  - name: make mongodb listen to all ports
+    become: yes
+    shell: sed -i 's/127.0.0.1/0.0.0.0/' /etc/mongod.conf
+
+  - name: enable mongod
+    become: yes
+    systemd:
+      daemon_reload: yes
+      name: mongod
+      enabled: yes
+  - name: start mongod
+    become: yes
+    systemd:
+      daemon_reload: yes
+      name: mongod
+      state: started
