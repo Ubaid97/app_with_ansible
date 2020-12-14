@@ -1,8 +1,6 @@
 # Your YAML Playbook FILE starts after three dashes (---)
 
 ---
-# example targetting host_a
-
 
 - hosts: app_server
 # used to define where this playbook will run
@@ -13,6 +11,12 @@
   become: true
 # become is used to the root permission to perform tasks that may require admin access
 
+  # Defining global variables
+  vars:
+    DB_HOST: 172.31.45.2
+
+    environment: "{{ DB_HOST }}"
+    
   tasks:
   - name: update and upgrade
     apt: upgrade=yes update_cache=yes
@@ -21,6 +25,12 @@
       name: git
       state: present
       update_cache: yes
+ 
+  - name: set db host
+    become: yes
+    shell: |
+      echo "export DB_HOST={{ DB_HOST }}" >> ~/.bashrc
+      export "DB_HOST={{ DB_HOST }}"
 
   - name: python-sw-props
     become: yes
@@ -125,18 +135,6 @@
   gather_facts: yes
 
   tasks:
-#  - name: install npm in bin
-#    become: yes
-#    npm:
-#      path: /usr/local/bin
-
-
-#  - name: install npm in app
-#    become: yes
-#    npm:
-#      path: app/
-#      ignore_errors: yes
-
   - name: npm install the dependencies from package-lock
     become: yes
     shell:
